@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -94,12 +94,19 @@ export function FuelForm({
   });
 
   const liters = Number(watch("liters")) || 0;
-  const price = Number(watch("pricePerLiter")) || 0;
-  const computedTotal = Math.round(liters * price * 100) / 100;
+  const totalCost = Number(watch("totalCost")) || 0;
+  const computedPrice =
+    liters > 0 ? Math.round((totalCost / liters) * 100) / 100 : 0;
   const lat = watch("latitude");
   const lng = watch("longitude");
   const units = unitsForVehicle(watch("vehicleId"));
   const volWord = units.volumeUnit === "GAL" ? "Galones" : "Litros";
+
+  // El precio por unidad se deriva de total ÷ volumen y se guarda en un
+  // campo oculto para satisfacer el esquema (pricePerLiter es requerido).
+  useEffect(() => {
+    setValue("pricePerLiter", computedPrice, { shouldValidate: false });
+  }, [computedPrice, setValue]);
 
   // Inputs are captured in the vehicle's units; persist everything in canonical km/L.
   function submit(values: Values) {
@@ -179,6 +186,8 @@ export function FuelForm({
         )}
       </div>
 
+      <input type="hidden" {...register("pricePerLiter")} />
+
       <div className="grid grid-cols-2 gap-3">
         <div>
           <Label htmlFor="liters">{volWord} *</Label>
@@ -197,44 +206,41 @@ export function FuelForm({
           )}
         </div>
         <div>
-          <Label htmlFor="pricePerLiter">
-            Precio / {volumeLabel(units.volumeUnit)} *
-          </Label>
+          <Label htmlFor="totalCost">Total pagado *</Label>
           <Input
-            id="pricePerLiter"
+            id="totalCost"
             type="number"
             step="0.01"
             inputMode="decimal"
-            placeholder="23.60"
-            {...register("pricePerLiter")}
+            placeholder="790.00"
+            {...register("totalCost")}
           />
-          {errors.pricePerLiter && (
+          {errors.totalCost && (
             <p className="text-xs text-destructive mt-1">
-              {errors.pricePerLiter.message}
+              {errors.totalCost.message}
             </p>
           )}
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="totalCost">
-          Total {computedTotal > 0 && (
-            <span className="text-primary font-normal">
-              (calculado: {formatCurrency(computedTotal)})
+      <div className="rounded-[var(--radius)] border border-border bg-muted px-3.5 py-3">
+        <p className="text-xs font-medium text-muted-foreground">
+          Precio por {volumeLabel(units.volumeUnit)} (calculado)
+        </p>
+        <p className="text-lg font-bold tracking-tight">
+          {computedPrice > 0 ? (
+            `${formatCurrency(computedPrice)}/${volumeLabel(units.volumeUnit)}`
+          ) : (
+            <span className="text-muted-foreground font-normal text-sm">
+              Ingresa litros y total para calcularlo
             </span>
           )}
-        </Label>
-        <Input
-          id="totalCost"
-          type="number"
-          step="0.01"
-          inputMode="decimal"
-          placeholder={computedTotal ? String(computedTotal) : "Auto"}
-          {...register("totalCost")}
-        />
-        <p className="text-xs text-muted-foreground mt-1">
-          Déjalo vacío para usar el total calculado.
         </p>
+        {errors.pricePerLiter && computedPrice <= 0 && (
+          <p className="text-xs text-destructive mt-1">
+            Ingresa litros y total válidos.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
