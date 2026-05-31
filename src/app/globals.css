@@ -1,26 +1,90 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Podia palette — raw tokens */
+  --color-ink-black: #06040e;
+  --color-deep-ocean: #10242f;
+  --color-crystal-canvas: #ffffff;
+  --color-cloud-gray: #e1edf2;
+  --color-warm-sand: #f5f5f5;
+  --color-sky-blue: #a5c8d8;
+  --color-lavender-mist: #cbb0eb;
+  --color-sunset-orange: #e39a4d;
+  --color-rich-plum: #1f1738;
+  --color-earthy-umber: #452623;
+  --color-light-peach: #f6ddc4;
+
+  /* Semantic tokens (light theme) */
+  --color-background: #f5f5f5;
+  --color-foreground: #06040e;
+  --color-card: #ffffff;
+  --color-card-foreground: #06040e;
+  --color-muted: #eef1f4;
+  --color-muted-foreground: #5b6675;
+  --color-border: #e6e9ec;
+  --color-input: #d8dee4;
+  --color-primary: #06040e;
+  --color-primary-foreground: #ffffff;
+  --color-accent: #10242f;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #c5362c;
+  --color-destructive-foreground: #ffffff;
+  --color-ring: #06040e;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Rounded, soft shapes — buttons 16px, cards 20px */
+  --radius: 1rem;
+  --radius-card: 1.25rem;
+
+  /* Spacing scale (DESIGN tokens, available as utilities) */
+  --spacing-section: 40px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  border-color: var(--color-border);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* StabilGrotesk-style condensed headings: negative letter-spacing at scale */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+}
+h1 {
+  letter-spacing: -0.03em;
+}
+
+/* Subtle, native-feel tap behavior on mobile */
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Native select chevron (kept in CSS to avoid Tailwind arbitrary-value parsing) */
+.select-chevron {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235b6675' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 1.1em;
+}
+
+/* Leaflet container needs an explicit height; match light canvas */
+.leaflet-container {
+  background: #e1edf2;
 }

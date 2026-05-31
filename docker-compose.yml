@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: fuelo-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fuelo
+      POSTGRES_PASSWORD: fuelo
+      POSTGRES_DB: fuelo
+    ports:
+      - "5434:5432"
+    volumes:
+      - fuelo_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fuelo -d fuelo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  fuelo_pgdata:
