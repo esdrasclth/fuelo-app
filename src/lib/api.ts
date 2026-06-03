@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { UnauthorizedError } from "@/lib/session";
+import { HttpError } from "@/lib/errors";
 
 /** Wraps a route handler, mapping common errors to JSON responses. */
 export function route<T>(fn: () => Promise<T>) {
   return fn()
     .then((data) => NextResponse.json(data))
     .catch((err) => {
-      if (err instanceof UnauthorizedError) {
-        return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+      if (err instanceof HttpError) {
+        return NextResponse.json(
+          { error: err.message },
+          { status: err.status },
+        );
       }
       if (err instanceof ZodError) {
         return NextResponse.json(

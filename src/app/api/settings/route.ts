@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/session";
 import { route, parseBody } from "@/lib/api";
+import { NotFoundError } from "@/lib/errors";
 import { settingsSchema } from "@/lib/validations";
 
 export function GET() {
@@ -10,7 +11,7 @@ export function GET() {
       where: { id: userId },
       select: { currency: true, defaultVehicleId: true, defaultStationId: true },
     });
-    if (!user) throw new Error("Usuario no encontrado");
+    if (!user) throw new NotFoundError("Usuario no encontrado");
     return user;
   });
 }
@@ -35,7 +36,7 @@ export function PATCH(req: Request) {
           where: { id, userId },
           select: { id: true },
         });
-        if (!owned) throw new Error("Vehículo no encontrado");
+        if (!owned) throw new NotFoundError("Vehículo no encontrado");
       }
       update.defaultVehicleId = id;
     }
@@ -47,7 +48,7 @@ export function PATCH(req: Request) {
           where: { id, userId },
           select: { id: true },
         });
-        if (!owned) throw new Error("Gasolinera no encontrada");
+        if (!owned) throw new NotFoundError("Gasolinera no encontrada");
       }
       update.defaultStationId = id;
     }

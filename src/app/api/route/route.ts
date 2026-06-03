@@ -1,5 +1,6 @@
 import { requireUserId } from "@/lib/session";
 import { route } from "@/lib/api";
+import { BadRequestError, NotFoundError, UpstreamError } from "@/lib/errors";
 
 // Proxies OSRM so we control the upstream and keep the client simple.
 export function GET(req: Request) {
@@ -12,7 +13,7 @@ export function GET(req: Request) {
     const dLng = Number(searchParams.get("dLng"));
 
     if ([oLat, oLng, dLat, dLng].some((n) => Number.isNaN(n)))
-      throw new Error("Coordenadas inválidas");
+      throw new BadRequestError("Coordenadas inválidas");
 
     const url =
       `https://router.project-osrm.org/route/v1/driving/` +
@@ -22,11 +23,11 @@ export function GET(req: Request) {
     const res = await fetch(url, {
       headers: { "User-Agent": "Fuelo/1.0 (fuel tracker app)" },
     });
-    if (!res.ok) throw new Error("No se pudo calcular la ruta");
+    if (!res.ok) throw new UpstreamError("No se pudo calcular la ruta");
 
     const data = await res.json();
     const r = data.routes?.[0];
-    if (!r) throw new Error("Sin ruta disponible");
+    if (!r) throw new NotFoundError("Sin ruta disponible");
 
     const geometry: [number, number][] = (
       r.geometry?.coordinates ?? []

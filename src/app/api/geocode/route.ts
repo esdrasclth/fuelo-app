@@ -1,5 +1,6 @@
 import { requireUserId } from "@/lib/session";
 import { route } from "@/lib/api";
+import { UpstreamError } from "@/lib/errors";
 
 export interface GeocodeResult {
   label: string;
@@ -22,7 +23,7 @@ export function GET(req: Request) {
     const res = await fetch(url, {
       headers: { "User-Agent": "Fuelo/1.0 (fuel tracker app)" },
     });
-    if (!res.ok) throw new Error("No se pudo buscar el lugar");
+    if (!res.ok) throw new UpstreamError("No se pudo buscar el lugar");
 
     const data = (await res.json()) as Array<{
       display_name: string;
