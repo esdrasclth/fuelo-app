@@ -37,6 +37,9 @@ model User {
   email        String     @unique
   name         String?
   passwordHash String
+  currency         String  @default("HNL")
+  defaultVehicleId String?
+  defaultStationId String?
   createdAt    DateTime   @default(now())
 
   vehicles  Vehicle[]

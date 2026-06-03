@@ -7,6 +7,7 @@ import { Plus, Gauge, DollarSign, Wallet, Fuel, Car } from "lucide-react";
 import { toast } from "sonner";
 import { useFuelLogs, useFuelLogMutations } from "@/hooks/use-fuel-logs";
 import { useVehicles } from "@/hooks/use-vehicles";
+import { useCurrency } from "@/hooks/use-settings";
 import { computeFuelStats, monthlySpend } from "@/lib/metrics";
 import { KpiCard } from "@/components/kpi-card";
 import { EfficiencyChart, MonthlySpendChart } from "@/components/charts";
@@ -33,6 +34,7 @@ import {
 export default function DashboardPage() {
   const { data: session } = useSession();
   const { data: vehicles } = useVehicles();
+  const currency = useCurrency();
   const { data: logs, isLoading } = useFuelLogs();
   const { create } = useFuelLogMutations();
   const [open, setOpen] = useState(false);
@@ -112,6 +114,7 @@ export default function DashboardPage() {
                         stats.avgCostPerKm,
                         units.distanceUnit,
                       ),
+                      currency,
                     )
                   : "—"
               }
@@ -120,7 +123,7 @@ export default function DashboardPage() {
             />
             <KpiCard
               label="Gasto total"
-              value={formatCurrency(stats.totalSpent)}
+              value={formatCurrency(stats.totalSpent, currency)}
               hint={`${stats.fills} cargas`}
               icon={<Wallet className="size-4" />}
             />
@@ -128,7 +131,7 @@ export default function DashboardPage() {
               label="Precio actual"
               value={
                 stats.lastPricePerLiter
-                  ? `${formatCurrency(pricePerVolumeFromCanonical(stats.lastPricePerLiter, units.volumeUnit))}/${volumeLabel(units.volumeUnit)}`
+                  ? `${formatCurrency(pricePerVolumeFromCanonical(stats.lastPricePerLiter, units.volumeUnit), currency)}/${volumeLabel(units.volumeUnit)}`
                   : "—"
               }
               hint="Última carga"
@@ -170,7 +173,7 @@ export default function DashboardPage() {
                     <CardContent className="py-3 flex items-center justify-between">
                       <div>
                         <p className="font-medium">
-                          {formatCurrency(l.totalCost)}{" "}
+                          {formatCurrency(l.totalCost, currency)}{" "}
                           <span className="text-sm text-muted-foreground font-normal">
                             · {formatNumber(volumeFromCanonical(l.liters, u.volumeUnit))}{" "}
                             {volumeLabel(u.volumeUnit)}

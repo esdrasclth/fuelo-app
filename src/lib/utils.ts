@@ -1,12 +1,13 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { DEFAULT_CURRENCY, currencyLocale } from "./currencies";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(value: number, currency = "MXN") {
-  return new Intl.NumberFormat("es-MX", {
+export function formatCurrency(value: number, currency = DEFAULT_CURRENCY) {
+  return new Intl.NumberFormat(currencyLocale(currency), {
     style: "currency",
     currency,
     maximumFractionDigits: 2,

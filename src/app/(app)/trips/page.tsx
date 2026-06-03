@@ -33,6 +33,7 @@ import { Select } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { useCurrency } from "@/hooks/use-settings";
 import type { Trip } from "@/lib/types";
 
 const TripMap = dynamic(() => import("@/components/trip-map"), {
@@ -48,6 +49,7 @@ export default function TripsPage() {
   const { data: vehicles } = useVehicles();
   const { data: logs } = useFuelLogs();
   const { data: trips } = useTrips();
+  const currency = useCurrency();
   const { create, remove } = useTripMutations();
 
   const [origin, setOrigin] = useState<Point>(null);
@@ -442,11 +444,11 @@ export default function TripsPage() {
               <div className="rounded-[var(--radius)] bg-primary/15 p-4 text-center">
                 <p className="text-sm text-muted-foreground">Costo estimado</p>
                 <p className="text-2xl font-bold text-primary">
-                  {formatCurrency(estimate.cost)}
+                  {formatCurrency(estimate.cost, currency)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {formatNumber(kmPerL, 1)} km/L ·{" "}
-                  {formatCurrency(pricePerLiter)}/L
+                  {formatCurrency(pricePerLiter, currency)}/L
                 </p>
               </div>
             )}
@@ -497,7 +499,7 @@ export default function TripsPage() {
                         </span>
                         {t.estimatedCost != null && (
                           <span className="font-medium text-foreground">
-                            {formatCurrency(t.estimatedCost)}
+                            {formatCurrency(t.estimatedCost, currency)}
                           </span>
                         )}
                         {t.vehicle?.name && <span>· {t.vehicle.name}</span>}

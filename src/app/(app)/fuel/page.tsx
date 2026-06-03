@@ -5,6 +5,7 @@ import { Fuel, Plus, Pencil, Trash2, Gauge } from "lucide-react";
 import { toast } from "sonner";
 import { useFuelLogs, useFuelLogMutations } from "@/hooks/use-fuel-logs";
 import { useVehicles } from "@/hooks/use-vehicles";
+import { useCurrency } from "@/hooks/use-settings";
 import { FuelForm } from "@/components/forms/fuel-form";
 import { PageHeader, EmptyState } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import {
 export default function FuelPage() {
   const [vehicleFilter, setVehicleFilter] = useState("");
   const { data: vehicles } = useVehicles();
+  const currency = useCurrency();
   const { data: logs, isLoading } = useFuelLogs(vehicleFilter || undefined);
   const { create, update, remove } = useFuelLogMutations();
   const [open, setOpen] = useState(false);
@@ -130,13 +132,14 @@ export default function FuelPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <Fuel className="size-4 text-primary shrink-0" />
                     <span className="font-semibold">
-                      {formatCurrency(l.totalCost)}
+                      {formatCurrency(l.totalCost, currency)}
                     </span>
                     <span className="text-sm text-muted-foreground">
                       · {formatNumber(volumeFromCanonical(l.liters, u.volumeUnit))}{" "}
                       {volumeLabel(u.volumeUnit)} ·{" "}
                       {formatCurrency(
                         pricePerVolumeFromCanonical(l.pricePerLiter, u.volumeUnit),
+                        currency,
                       )}
                       /{volumeLabel(u.volumeUnit)}
                     </span>

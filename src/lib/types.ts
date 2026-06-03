@@ -34,6 +34,12 @@ export const REMINDER_TYPE_LABELS: Record<ReminderType, string> = {
   OTHER: "Otro",
 };
 
+export interface Settings {
+  currency: string;
+  defaultVehicleId: string | null;
+  defaultStationId: string | null;
+}
+
 export interface Vehicle {
   id: string;
   name: string;

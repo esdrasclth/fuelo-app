@@ -14,6 +14,7 @@ import { Select } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useVehicles } from "@/hooks/use-vehicles";
 import { useStations } from "@/hooks/use-stations";
+import { useSettings, useCurrency } from "@/hooks/use-settings";
 import { FUEL_TYPE_LABELS, type FuelLog } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -49,7 +50,12 @@ export function FuelForm({
 }) {
   const { data: vehicles } = useVehicles();
   const { data: stations } = useStations();
+  const { data: settings } = useSettings();
+  const currency = useCurrency();
   const [locating, setLocating] = useState(false);
+
+  // En cargas nuevas (sin defaultValues) arrancamos con los favoritos del usuario.
+  const isEditing = defaultValues != null;
 
   const unitsForVehicle = (id?: string) =>
     unitsOf(vehicles?.find((v) => v.id === id)) ?? DEFAULT_UNITS;
@@ -62,11 +68,13 @@ export function FuelForm({
     handleSubmit,
     watch,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<Values>({
     resolver: zodResolver(fuelLogSchema),
     defaultValues: {
-      vehicleId: defaultValues?.vehicleId ?? "",
+      vehicleId:
+        defaultValues?.vehicleId ?? settings?.defaultVehicleId ?? "",
       date: defaultValues?.date
         ? toLocalInput(new Date(defaultValues.date))
         : toLocalInput(new Date()),
@@ -84,7 +92,8 @@ export function FuelForm({
           : undefined,
       totalCost: defaultValues?.totalCost ?? undefined,
       fuelType: defaultValues?.fuelType ?? "MAGNA",
-      stationId: defaultValues?.stationId ?? "",
+      stationId:
+        defaultValues?.stationId ?? settings?.defaultStationId ?? "",
       isFullTank: defaultValues?.isFullTank ?? true,
       missedPrevious: defaultValues?.missedPrevious ?? false,
       latitude: defaultValues?.latitude ?? undefined,
@@ -107,6 +116,18 @@ export function FuelForm({
   useEffect(() => {
     setValue("pricePerLiter", computedPrice, { shouldValidate: false });
   }, [computedPrice, setValue]);
+
+  // Si los ajustes cargan después de montar el formulario, aplica los
+  // favoritos en cargas nuevas sin pisar lo que el usuario haya elegido.
+  useEffect(() => {
+    if (isEditing || !settings) return;
+    if (settings.defaultVehicleId && !getValues("vehicleId")) {
+      setValue("vehicleId", settings.defaultVehicleId);
+    }
+    if (settings.defaultStationId && !getValues("stationId")) {
+      setValue("stationId", settings.defaultStationId);
+    }
+  }, [settings, isEditing, setValue, getValues]);
 
   // Inputs are captured in the vehicle's units; persist everything in canonical km/L.
   function submit(values: Values) {
@@ -229,7 +250,7 @@ export function FuelForm({
         </p>
         <p className="text-lg font-bold tracking-tight">
           {computedPrice > 0 ? (
-            `${formatCurrency(computedPrice)}/${volumeLabel(units.volumeUnit)}`
+            `${formatCurrency(computedPrice, currency)}/${volumeLabel(units.volumeUnit)}`
           ) : (
             <span className="text-muted-foreground font-normal text-sm">
               Ingresa litros y total para calcularlo

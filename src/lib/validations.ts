@@ -1,4 +1,13 @@
 import { z } from "zod";
+import { CURRENCIES } from "@/lib/currencies";
+
+export const settingsSchema = z.object({
+  currency: z
+    .enum(CURRENCIES.map((c) => c.code) as [string, ...string[]])
+    .optional(),
+  defaultVehicleId: z.string().optional().or(z.literal("")).nullable(),
+  defaultStationId: z.string().optional().or(z.literal("")).nullable(),
+});
 
 export const registerSchema = z.object({
   name: z.string().min(1, "Ingresa tu nombre").max(80),
