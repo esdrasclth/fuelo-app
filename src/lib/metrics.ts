@@ -149,6 +149,92 @@ export function spendByStation(
   return [...map.values()].sort((a, b) => b.spent - a.spent);
 }
 
+export interface EfficiencyAnomaly {
+  date: string;
+  kmPerL: number; // canonical
+  baseline: number; // expected km/L from the trailing window
+  dropPct: number; // 0..1, how far below baseline
+}
+
+/**
+ * Flags intervals whose efficiency falls sharply below the recent trend — a
+ * possible mechanical issue, leak, or change in driving. Each interval is
+ * compared to the average of the `window` intervals before it.
+ */
+export function detectEfficiencyAnomalies(
+  intervals: FuelInterval[],
+  { window = 3, threshold = 0.2 }: { window?: number; threshold?: number } = {},
+): EfficiencyAnomaly[] {
+  const anomalies: EfficiencyAnomaly[] = [];
+  for (let i = window; i < intervals.length; i++) {
+    const prior = intervals.slice(i - window, i);
+    const baseline = prior.reduce((s, p) => s + p.kmPerL, 0) / prior.length;
+    if (baseline <= 0) continue;
+    const current = intervals[i].kmPerL;
+    const dropPct = (baseline - current) / baseline;
+    if (dropPct >= threshold) {
+      anomalies.push({ date: intervals[i].date, kmPerL: current, baseline, dropPct });
+    }
+  }
+  return anomalies;
+}
+
+/**
+ * Distance a full tank can cover, given capacity (liters) and average
+ * efficiency (km/L). Returns canonical km, or null if either input is missing.
+ */
+export function fullTankRange(
+  tankCapacity: number | null | undefined,
+  avgKmPerL: number | null | undefined,
+): number | null {
+  if (!tankCapacity || tankCapacity <= 0) return null;
+  if (!avgKmPerL || avgKmPerL <= 0) return null;
+  return tankCapacity * avgKmPerL;
+}
+
+export interface StationPrice {
+  name: string;
+  avgPrice: number; // canonical per liter
+  minPrice: number;
+  maxPrice: number;
+  fills: number;
+}
+
+/** Average (and range of) price per liter at each station, cheapest first. */
+export function priceByStation(logs: FuelLog[]): StationPrice[] {
+  const map = new Map<
+    string,
+    { sum: number; fills: number; min: number; max: number }
+  >();
+  for (const l of logs) {
+    if (!l.station) continue;
+    const name = `${l.station.brand}${l.station.branch ? ` · ${l.station.branch}` : ""}`;
+    const e = map.get(name);
+    if (e) {
+      e.sum += l.pricePerLiter;
+      e.fills += 1;
+      e.min = Math.min(e.min, l.pricePerLiter);
+      e.max = Math.max(e.max, l.pricePerLiter);
+    } else {
+      map.set(name, {
+        sum: l.pricePerLiter,
+        fills: 1,
+        min: l.pricePerLiter,
+        max: l.pricePerLiter,
+      });
+    }
+  }
+  return [...map.entries()]
+    .map(([name, e]) => ({
+      name,
+      avgPrice: e.sum / e.fills,
+      minPrice: e.min,
+      maxPrice: e.max,
+      fills: e.fills,
+    }))
+    .sort((a, b) => a.avgPrice - b.avgPrice);
+}
+
 /** Estimate fuel cost for a trip given distance, efficiency and price. */
 export function estimateTripCost(
   distanceKm: number,

@@ -138,6 +138,41 @@ export function PriceTrendChart({
   );
 }
 
+export function StationPriceChart({
+  data,
+  volumeLabel = "L",
+}: {
+  data: { name: string; price: number }[];
+  volumeLabel?: string;
+}) {
+  return (
+    <ChartCard title={`Precio promedio por gasolinera ($/${volumeLabel})`}>
+      <ResponsiveContainer>
+        <BarChart
+          data={data}
+          layout="vertical"
+          margin={{ top: 4, right: 12, left: 8, bottom: 0 }}
+        >
+          <CartesianGrid stroke={grid} horizontal={false} />
+          <XAxis type="number" {...axis} tickLine={false} domain={["auto", "auto"]} />
+          <YAxis
+            type="category"
+            dataKey="name"
+            {...axis}
+            tickLine={false}
+            width={110}
+          />
+          <Tooltip
+            contentStyle={tooltipStyle}
+            formatter={(v) => [`$${Number(v).toFixed(2)}`, `$/${volumeLabel}`]}
+          />
+          <Bar dataKey="price" name={`$/${volumeLabel}`} fill={primary} radius={[0, 6, 6, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </ChartCard>
+  );
+}
+
 export function StationSpendChart({
   data,
 }: {
