@@ -1,7 +1,7 @@
-export type FuelType = "MAGNA" | "PREMIUM" | "DIESEL";
+export type FuelType = "MAGNA" | "PREMIUM" | "DIESEL" | "ELECTRIC";
 
 export type DistanceUnit = "KM" | "MI";
-export type VolumeUnit = "L" | "GAL";
+export type VolumeUnit = "L" | "GAL" | "KWH";
 
 export const DISTANCE_UNIT_LABELS: Record<DistanceUnit, string> = {
   KM: "Kilómetros (km)",
@@ -11,6 +11,7 @@ export const DISTANCE_UNIT_LABELS: Record<DistanceUnit, string> = {
 export const VOLUME_UNIT_LABELS: Record<VolumeUnit, string> = {
   L: "Litros (L)",
   GAL: "Galones (gal)",
+  KWH: "Kilovatios-hora (kWh)",
 };
 
 export type ReminderType =
@@ -24,6 +25,7 @@ export const FUEL_TYPE_LABELS: Record<FuelType, string> = {
   MAGNA: "Magna",
   PREMIUM: "Premium",
   DIESEL: "Diésel",
+  ELECTRIC: "Eléctrico",
 };
 
 export const REMINDER_TYPE_LABELS: Record<ReminderType, string> = {
@@ -51,7 +53,34 @@ export interface Vehicle {
   tankCapacity: number | null;
   distanceUnit: DistanceUnit;
   volumeUnit: VolumeUnit;
+  householdId: string | null;
+  household?: { id: string; name: string } | null;
   createdAt: string;
+}
+
+export interface HouseholdMemberInfo {
+  id: string;
+  userId: string;
+  role: string;
+  name: string | null;
+  email: string;
+}
+
+export interface Household {
+  id: string;
+  name: string;
+  ownerId: string;
+  isOwner: boolean;
+  vehicleCount: number;
+  members: HouseholdMemberInfo[];
+}
+
+export interface HouseholdInvite {
+  id: string;
+  householdId: string;
+  householdName: string;
+  invitedByName: string | null;
+  invitedByEmail: string;
 }
 
 export interface Station {

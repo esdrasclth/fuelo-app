@@ -114,12 +114,17 @@ export default function VehiclesPage() {
                     )}
                     {v.tankCapacity && (
                       <span className="px-2 py-0.5 rounded-full bg-muted">
-                        {v.tankCapacity} L
+                        {v.tankCapacity} {volumeLabel(v.volumeUnit)}
                       </span>
                     )}
                     <span className="px-2 py-0.5 rounded-full bg-muted">
                       {distanceLabel(v.distanceUnit)}/{volumeLabel(v.volumeUnit)}
                     </span>
+                    {v.household && (
+                      <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                        {v.household.name}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">

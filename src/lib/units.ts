@@ -11,7 +11,11 @@ const KM_PER_MI = 1.609344;
 const L_PER_GAL = 3.785411784;
 
 export const DISTANCE_ABBR: Record<DistanceUnit, string> = { KM: "km", MI: "mi" };
-export const VOLUME_ABBR: Record<VolumeUnit, string> = { L: "L", GAL: "gal" };
+export const VOLUME_ABBR: Record<VolumeUnit, string> = {
+  L: "L",
+  GAL: "gal",
+  KWH: "kWh",
+};
 
 // Canonical storage is always km and liters. These convert to/from a vehicle's unit.
 export const distanceFromCanonical = (km: number, u: DistanceUnit) =>

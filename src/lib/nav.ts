@@ -7,6 +7,7 @@ import {
   BarChart3,
   Bell,
   Settings,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -24,6 +25,7 @@ export const navItems: NavItem[] = [
   { href: "/vehicles", label: "Vehículos", icon: Car },
   { href: "/stations", label: "Gasolineras", icon: MapPin },
   { href: "/reminders", label: "Recordatorios", icon: Bell },
+  { href: "/household", label: "Hogar", icon: Users },
   { href: "/settings", label: "Ajustes", icon: Settings },
 ];
 

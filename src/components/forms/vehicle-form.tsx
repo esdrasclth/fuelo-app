@@ -14,6 +14,7 @@ import {
   VOLUME_UNIT_LABELS,
   type Vehicle,
 } from "@/lib/types";
+import { useHouseholds } from "@/hooks/use-households";
 
 type Values = z.input<typeof vehicleSchema>;
 
@@ -26,9 +27,11 @@ export function VehicleForm({
   onSubmit: (values: Values) => void;
   submitting?: boolean;
 }) {
+  const { data: households } = useHouseholds();
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<Values>({
     resolver: zodResolver(vehicleSchema),
@@ -42,6 +45,7 @@ export function VehicleForm({
       tankCapacity: defaultValues?.tankCapacity ?? undefined,
       distanceUnit: defaultValues?.distanceUnit ?? "KM",
       volumeUnit: defaultValues?.volumeUnit ?? "L",
+      householdId: defaultValues?.householdId ?? "",
     },
   });
 
@@ -86,12 +90,14 @@ export function VehicleForm({
           </Select>
         </div>
         <div>
-          <Label htmlFor="tankCapacity">Tanque (L)</Label>
+          <Label htmlFor="tankCapacity">
+            {watch("volumeUnit") === "KWH" ? "Batería (kWh)" : "Tanque (L)"}
+          </Label>
           <Input
             id="tankCapacity"
             type="number"
             step="0.1"
-            placeholder="41"
+            placeholder={watch("volumeUnit") === "KWH" ? "60" : "41"}
             {...register("tankCapacity")}
           />
         </div>
@@ -122,6 +128,23 @@ export function VehicleForm({
         Cómo capturas y ves los datos de este vehículo. Internamente todo se
         guarda igual, así que puedes cambiarlo cuando quieras.
       </p>
+      {!!households?.length && (
+        <div>
+          <Label htmlFor="householdId">Compartir con hogar</Label>
+          <Select id="householdId" {...register("householdId")}>
+            <option value="">Solo yo</option>
+            {households.map((h) => (
+              <option key={h.id} value={h.id}>
+                {h.name}
+              </option>
+            ))}
+          </Select>
+          <p className="text-xs text-muted-foreground mt-1">
+            Los miembros del hogar verán este vehículo y podrán registrar
+            cargas.
+          </p>
+        </div>
+      )}
       <Button type="submit" className="w-full" size="lg" disabled={submitting}>
         {submitting ? "Guardando…" : "Guardar vehículo"}
       </Button>

@@ -109,7 +109,12 @@ export function FuelForm({
   const lat = watch("latitude");
   const lng = watch("longitude");
   const units = unitsForVehicle(watch("vehicleId"));
-  const volWord = units.volumeUnit === "GAL" ? "Galones" : "Litros";
+  const volWord =
+    units.volumeUnit === "KWH"
+      ? "Energía (kWh)"
+      : units.volumeUnit === "GAL"
+        ? "Galones"
+        : "Litros";
 
   // El precio por unidad se deriva de total ÷ volumen y se guarda en un
   // campo oculto para satisfacer el esquema (pricePerLiter es requerido).

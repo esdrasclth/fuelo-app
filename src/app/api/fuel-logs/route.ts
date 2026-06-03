@@ -1,15 +1,21 @@
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/session";
 import { route, parseBody } from "@/lib/api";
+import { NotFoundError } from "@/lib/errors";
 import { fuelLogSchema } from "@/lib/validations";
+import { accessibleVehicleIds } from "@/lib/access";
 
 export function GET(req: Request) {
   return route(async () => {
     const userId = await requireUserId();
     const { searchParams } = new URL(req.url);
     const vehicleId = searchParams.get("vehicleId") || undefined;
+    const ids = await accessibleVehicleIds(userId);
+    const allowed = vehicleId
+      ? ids.filter((id) => id === vehicleId)
+      : ids;
     return prisma.fuelLog.findMany({
-      where: { userId, ...(vehicleId ? { vehicleId } : {}) },
+      where: { vehicleId: { in: allowed } },
       orderBy: { date: "desc" },
       include: { station: true, vehicle: { select: { name: true } } },
     });
@@ -21,12 +27,11 @@ export function POST(req: Request) {
     const userId = await requireUserId();
     const data = fuelLogSchema.parse(await parseBody(req));
 
-    // ownership check for the vehicle
-    const vehicle = await prisma.vehicle.findFirst({
-      where: { id: data.vehicleId, userId },
-      select: { id: true },
-    });
-    if (!vehicle) throw new Error("Vehículo no encontrado");
+    // Allow logging fuel on any vehicle the user can access (owned or shared).
+    const ids = await accessibleVehicleIds(userId);
+    if (!ids.includes(data.vehicleId)) {
+      throw new NotFoundError("Vehículo no encontrado");
+    }
 
     const totalCost =
       data.totalCost && data.totalCost > 0
@@ -51,7 +56,17 @@ export function POST(req: Request) {
     };
 
     // Offline replays carry a client-generated id — upsert keeps them idempotent.
+    // Guard against id collisions with another user's log: a bare upsert would
+    // overwrite their row (and reassign its userId) since the unique `where`
+    // can't be scoped by userId.
     if (data.clientId) {
+      const existing = await prisma.fuelLog.findUnique({
+        where: { id: data.clientId },
+        select: { userId: true },
+      });
+      if (existing && existing.userId !== userId) {
+        throw new NotFoundError("Carga no encontrada");
+      }
       return prisma.fuelLog.upsert({
         where: { id: data.clientId },
         create: { id: data.clientId, ...values },

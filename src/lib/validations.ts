@@ -20,7 +20,7 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Ingresa tu contraseña"),
 });
 
-export const fuelTypeEnum = z.enum(["MAGNA", "PREMIUM", "DIESEL"]);
+export const fuelTypeEnum = z.enum(["MAGNA", "PREMIUM", "DIESEL", "ELECTRIC"]);
 
 export const vehicleSchema = z.object({
   name: z.string().min(1, "Nombre requerido").max(80),
@@ -31,7 +31,16 @@ export const vehicleSchema = z.object({
   fuelType: fuelTypeEnum.default("MAGNA"),
   tankCapacity: z.coerce.number().positive().max(500).optional(),
   distanceUnit: z.enum(["KM", "MI"]).default("KM"),
-  volumeUnit: z.enum(["L", "GAL"]).default("L"),
+  volumeUnit: z.enum(["L", "GAL", "KWH"]).default("L"),
+  householdId: z.string().optional().or(z.literal("")).nullable(),
+});
+
+export const householdSchema = z.object({
+  name: z.string().min(1, "Nombre requerido").max(80),
+});
+
+export const inviteSchema = z.object({
+  email: z.string().email("Correo inválido"),
 });
 
 export const stationSchema = z.object({
