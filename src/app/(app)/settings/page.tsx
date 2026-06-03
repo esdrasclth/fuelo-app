@@ -16,34 +16,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { useSettings, useSettingsMutation } from "@/hooks/use-settings";
-import { useVehicles } from "@/hooks/use-vehicles";
-import { useStations } from "@/hooks/use-stations";
 import { CURRENCIES, DEFAULT_CURRENCY } from "@/lib/currencies";
 
 export default function SettingsPage() {
   const { data: session } = useSession();
   const { data: settings } = useSettings();
-  const { data: vehicles } = useVehicles();
-  const { data: stations } = useStations();
   const save = useSettingsMutation();
 
-  // Los valores guardados son la base; el estado local solo guarda ediciones
-  // pendientes para no pisar lo que llega del servidor mientras carga.
+  // El estado local solo guarda la edición pendiente para no pisar lo que
+  // llega del servidor mientras carga.
   const [currencyEdit, setCurrencyEdit] = useState<string | null>(null);
-  const [vehicleEdit, setVehicleEdit] = useState<string | null>(null);
-  const [stationEdit, setStationEdit] = useState<string | null>(null);
-
   const currency = currencyEdit ?? settings?.currency ?? DEFAULT_CURRENCY;
-  const defaultVehicleId = vehicleEdit ?? settings?.defaultVehicleId ?? "";
-  const defaultStationId = stationEdit ?? settings?.defaultStationId ?? "";
 
   async function handleSave() {
     try {
-      await save.mutateAsync({
-        currency,
-        defaultVehicleId: defaultVehicleId || null,
-        defaultStationId: defaultStationId || null,
-      });
+      await save.mutateAsync({ currency });
       toast.success("Preferencias guardadas");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Error");
@@ -95,42 +82,6 @@ export default function SettingsPage() {
               </Select>
               <p className="text-xs text-muted-foreground mt-1">
                 Se usa en todos tus montos y precios.
-              </p>
-            </div>
-
-            <div>
-              <Label htmlFor="defaultVehicleId">Vehículo favorito</Label>
-              <Select
-                id="defaultVehicleId"
-                value={defaultVehicleId}
-                onChange={(e) => setVehicleEdit(e.target.value)}
-              >
-                <option value="">Sin favorito</option>
-                {vehicles?.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="defaultStationId">Gasolinera favorita</Label>
-              <Select
-                id="defaultStationId"
-                value={defaultStationId}
-                onChange={(e) => setStationEdit(e.target.value)}
-              >
-                <option value="">Sin favorita</option>
-                {stations?.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.brand}
-                    {s.branch ? ` — ${s.branch}` : ""}
-                  </option>
-                ))}
-              </Select>
-              <p className="text-xs text-muted-foreground mt-1">
-                Aparecerán seleccionadas por defecto al registrar una carga.
               </p>
             </div>
 

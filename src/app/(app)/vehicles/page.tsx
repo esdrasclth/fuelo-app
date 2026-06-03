@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Car, Plus, Pencil, Trash2 } from "lucide-react";
+import { Car, Plus, Pencil, Trash2, Star } from "lucide-react";
 import { toast } from "sonner";
 import { useVehicles, useVehicleMutations } from "@/hooks/use-vehicles";
+import { useSettings, useSettingsMutation } from "@/hooks/use-settings";
 import { VehicleForm } from "@/components/forms/vehicle-form";
 import { PageHeader, EmptyState } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -15,8 +16,20 @@ import { distanceLabel, volumeLabel } from "@/lib/units";
 export default function VehiclesPage() {
   const { data: vehicles, isLoading } = useVehicles();
   const { create, update, remove } = useVehicleMutations();
+  const { data: settings } = useSettings();
+  const setFavorite = useSettingsMutation();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Vehicle | null>(null);
+
+  async function toggleFavorite(v: Vehicle) {
+    const next = settings?.defaultVehicleId === v.id ? null : v.id;
+    try {
+      await setFavorite.mutateAsync({ defaultVehicleId: next });
+      toast.success(next ? `"${v.name}" es tu favorito` : "Favorito quitado");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error");
+    }
+  }
 
   function openNew() {
     setEditing(null);
@@ -110,6 +123,30 @@ export default function VehiclesPage() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => toggleFavorite(v)}
+                    disabled={setFavorite.isPending}
+                    aria-label={
+                      settings?.defaultVehicleId === v.id
+                        ? "Quitar de favoritos"
+                        : "Marcar como favorito"
+                    }
+                  >
+                    <Star
+                      className={
+                        settings?.defaultVehicleId === v.id
+                          ? "size-4 text-primary"
+                          : "size-4 text-muted-foreground"
+                      }
+                      fill={
+                        settings?.defaultVehicleId === v.id
+                          ? "currentColor"
+                          : "none"
+                      }
+                    />
+                  </Button>
                   <Button variant="ghost" size="icon" onClick={() => openEdit(v)}>
                     <Pencil className="size-4" />
                   </Button>

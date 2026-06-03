@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Plus, Pencil, Trash2 } from "lucide-react";
+import { MapPin, Plus, Pencil, Trash2, Star } from "lucide-react";
 import { toast } from "sonner";
 import { useStations, useStationMutations } from "@/hooks/use-stations";
+import { useSettings, useSettingsMutation } from "@/hooks/use-settings";
 import { StationForm } from "@/components/forms/station-form";
 import { PageHeader, EmptyState } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -14,8 +15,20 @@ import type { Station } from "@/lib/types";
 export default function StationsPage() {
   const { data: stations, isLoading } = useStations();
   const { create, update, remove } = useStationMutations();
+  const { data: settings } = useSettings();
+  const setFavorite = useSettingsMutation();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Station | null>(null);
+
+  async function toggleFavorite(s: Station) {
+    const next = settings?.defaultStationId === s.id ? null : s.id;
+    try {
+      await setFavorite.mutateAsync({ defaultStationId: next });
+      toast.success(next ? `"${s.brand}" es tu favorita` : "Favorita quitada");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error");
+    }
+  }
 
   function openNew() {
     setEditing(null);
@@ -98,6 +111,30 @@ export default function StationsPage() {
                   )}
                 </div>
                 <div className="flex flex-col gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => toggleFavorite(s)}
+                    disabled={setFavorite.isPending}
+                    aria-label={
+                      settings?.defaultStationId === s.id
+                        ? "Quitar de favoritos"
+                        : "Marcar como favorita"
+                    }
+                  >
+                    <Star
+                      className={
+                        settings?.defaultStationId === s.id
+                          ? "size-4 text-primary"
+                          : "size-4 text-muted-foreground"
+                      }
+                      fill={
+                        settings?.defaultStationId === s.id
+                          ? "currentColor"
+                          : "none"
+                      }
+                    />
+                  </Button>
                   <Button variant="ghost" size="icon" onClick={() => openEdit(s)}>
                     <Pencil className="size-4" />
                   </Button>
